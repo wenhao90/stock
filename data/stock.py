@@ -1,7 +1,7 @@
 # 股票相关的操作
 import jqdatasdk as sdk
 from app import join_quant as jq
-from jqlib.technical_analysis import *
+
 
 
 # 根据指数获取基本股票
@@ -12,8 +12,10 @@ def get_stock_by_code(code_str):
 
 
 jq.login()
+
+
 # print (sdk.get_security_info('000001.XSHE'))
-#行业信息
+# 行业信息
 # data = sdk.get_industry("000001.XSHE")
 # 行业列表
 # data  = sdk.get_industries(name='jq_l1', date=None)
@@ -26,8 +28,8 @@ jq.login()
 # 按周期获取行情
 # data = sdk.get_bars('600519.XSHG', 10, unit='10m',fields=['date','open','high','low','close','volume','money'],include_now=False,end_dt='2020-09-30 14:00:00')
 # data = sdk.get_price('600519.XSHG', start_date=None, end_date="2020-09-30 14:00:00", frequency='minute', fields=None, skip_paused=False, fq='pre', count=10, panel=True, fill_paused=True)
-#股票信息
+# 股票信息
 # data = dict(sdk.finance.run_query(sdk.query(sdk.finance.STK_COMPANY_INFO).filter(sdk.finance.STK_COMPANY_INFO.code=='600519.XSHG').limit(1)))
-data = sdk.EMA(['600519.XSHG'], check_date='2020-09-29', timeperiod=30)
-print(data)
+# data = sdk.EMA(['600519.XSHG'], check_date='2020-09-29', timeperiod=30)
+# print(data)
 
