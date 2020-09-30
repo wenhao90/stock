@@ -5,7 +5,7 @@ class Stock:
     code = ""
     name = ""
 
-    def __init__(self, c: object, n: object) -> object:
+    def __init__(self, code, name):
         self.code = c
         self.name = n
 

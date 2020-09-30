@@ -30,9 +30,9 @@ def stock_init(index_str):
 
     for i in range(length):
         code = index_list[i]
-        stock: Stock = entity.Stock(code, "")
+        stock_1 = entity.Stock(code, "")
 
-        stock_list.append(stock.to_json())
+        stock_list.append(stock_1.to_json())
 
     print(stock_list)
     mongo.insert_many("stock", stock_list)
