@@ -2,33 +2,66 @@
 import jqdatasdk as sdk
 from app import join_quant as jq
 
-
-
-# 根据指数获取基本股票
-def get_stock_by_code(code_str):
-    jq.login()
-    stock = sdk.get_security_info(code_str)
-    return stock
-
+# JQData证券代码标准格式
+# 上海证券交易所   .XSHG
+# 深圳证券交易所   .XSHE
 
 jq.login()
 
+# 获取所有标的信息
+# types
+# stock(股票)
+# index(指数)
+# etf(ETF基金)
+# data = sdk.get_all_securities(types=['stock'], date='2020-10-30')
 
-# print (sdk.get_security_info('000001.XSHE'))
-# 行业信息
-# data = sdk.get_industry("000001.XSHE")
-# 行业列表
-# data  = sdk.get_industries(name='jq_l1', date=None)
-# 股票行业信息
-# data  = sdk.get_industry_stocks('HY003')
-# 融资融券余额
-# data = sdk.finance.run_query(sdk.query(sdk.finance.STK_MT_TOTAL).filter(sdk.finance.STK_MT_TOTAL.date=='2020-09-29').limit(1))
-# ah对比
-# data = sdk.finance.run_query(sdk.query(sdk.finance.STK_AH_PRICE_COMP).filter(sdk.finance.STK_AH_PRICE_COMP.a_code=='000002.XSHE').order_by(sdk.finance.STK_AH_PRICE_COMP.day).limit(1))
-# 按周期获取行情
-# data = sdk.get_bars('600519.XSHG', 10, unit='10m',fields=['date','open','high','low','close','volume','money'],include_now=False,end_dt='2020-09-30 14:00:00')
-# data = sdk.get_price('600519.XSHG', start_date=None, end_date="2020-09-30 14:00:00", frequency='minute', fields=None, skip_paused=False, fq='pre', count=10, panel=True, fill_paused=True)
-# 股票信息
-data = dict(sdk.finance.run_query(sdk.query(sdk.finance.STK_COMPANY_INFO).filter(sdk.finance.STK_COMPANY_INFO.code=='600519.XSHG').limit(1)))
+# 获取融资标的列表
+# data = sdk.get_margincash_stocks(date='2020-10-30')
+
+# 获取融券标的列表
+# data = sdk.get_marginsec_stocks(date='2020-10-30')
+
+# 在策略中获取个股未来的解禁情况
+# data = sdk.get_locked_shares(stock_list=['000001.XSHE'], start_date='2020-10-30', forward_count=60)
+
+# 获取行业概念成分股
+# data = sdk.get_concept('000001.XSHE', '2020-10-30')
+
+# 获取行业列表
+# "sw_l1": 申万一级行业
+# "sw_l2": 申万二级行业
+# "sw_l3": 申万三级行业
+# "jq_l1": 聚宽一级行业
+# "jq_l2": 聚宽二级行业
+# "zjw": 证监会行业
+# data = sdk.get_industries(name='sw_l1', date='2020-10-30')
+
+# 获取概念列表
+# data = sdk.get_concepts()
+
+# 查询股票所属行业
+# data = sdk.get_industry('600519.XSHG', date='2020-10-30')
+
+# 获取行业指数数据
+# data = sdk.finance.run_query(sdk.query(sdk.finance.SW1_DAILY_PRICE).filter(sdk.finance.SW1_DAILY_PRICE.code == '801010').limit(1))
+
+# 获取行情数据
+# data = sdk.get_price('600519.XSHG', start_date='2020-10-30', end_date='2020-10-30', frequency='daily', fq='pre')
+
+# 获取融资融券信息
+# data = sdk.get_mtss('000001.XSHE', '2020-10-30', '2020-10-30')
+
+# 获取龙虎榜数据获取龙虎榜数据
+# data = sdk.get_billboard_list(stock_list=None, end_date='2020-10-30', count=1)
+
+# 沪深市场每日成交概况
+# 322002	上海A股
+# 322005	深市主板
+data = sdk.finance.run_query(sdk.query(sdk.finance.STK_EXCHANGE_TRADE_INFO).filter(
+    sdk.finance.STK_EXCHANGE_TRADE_INFO.exchange_code == '322002').limit(1))
+
+# 获取融资融券汇总数据
+data = sdk.finance.run_query(sdk.query(sdk.finance.STK_MT_TOTAL).filter(sdk.finance.STK_MT_TOTAL.date=='2020-10-30').limit(2))
+
+
 print(data)
-
