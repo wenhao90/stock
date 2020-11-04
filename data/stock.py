@@ -29,7 +29,6 @@ jq.login()
 # data = sdk.get_bars('600519.XSHG', 10, unit='10m',fields=['date','open','high','low','close','volume','money'],include_now=False,end_dt='2020-09-30 14:00:00')
 # data = sdk.get_price('600519.XSHG', start_date=None, end_date="2020-09-30 14:00:00", frequency='minute', fields=None, skip_paused=False, fq='pre', count=10, panel=True, fill_paused=True)
 # 股票信息
-# data = dict(sdk.finance.run_query(sdk.query(sdk.finance.STK_COMPANY_INFO).filter(sdk.finance.STK_COMPANY_INFO.code=='600519.XSHG').limit(1)))
-# data = sdk.EMA(['600519.XSHG'], check_date='2020-09-29', timeperiod=30)
-# print(data)
+data = dict(sdk.finance.run_query(sdk.query(sdk.finance.STK_COMPANY_INFO).filter(sdk.finance.STK_COMPANY_INFO.code=='600519.XSHG').limit(1)))
+print(data)
 
