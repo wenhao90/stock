@@ -1,4 +1,4 @@
-# pip3 install DBUtils
+# pip3 install DBUtils==1.3
 import pymysql
 from DBUtils.PooledDB import PooledDB
 
