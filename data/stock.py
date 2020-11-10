@@ -1,11 +1,16 @@
 # 股票相关的操作
+# coding:utf-8
+
 import jqdatasdk as sdk
 from jqdatasdk import finance
 from jqdatasdk import query
 from jqdatasdk import macro
+
 from app import join_quant as jq
 
 import mysql
+import math
+from datetime import datetime
 
 
 # JQData证券代码标准格式
@@ -13,10 +18,7 @@ import mysql
 # 深圳证券交易所   .XSHE
 
 
-def init_security():
-    jq.login()
-
-
+# 初始化股票数据（大于100E）
 def init_stock():
     jq.login()
 
@@ -24,19 +26,137 @@ def init_stock():
     data = sdk.get_fundamentals(sdk.query(sdk.valuation), '2020-10-30')
 
     sql = "insert into security(code, market_cap, circulating_market_cap, pe_ratio, pb_ratio, ps_ratio, pcf_ratio, type) values (%s, %s, %s, %s, %s, %s, %s, %s)"
+
     args = []
     for i in data.index:
-        arg = (data.iloc[i]['code'], float(data.iloc[i]['market_cap']), float(data.iloc[i]['circulating_market_cap']),
-               float(data.iloc[i]['pe_ratio']), float(data.iloc[i]['pb_ratio']), float(data.iloc[i]['ps_ratio']),
-               float(data.iloc[i]['pcf_ratio']),
-               'stock')
-        print (arg)
-        # args.append(arg)
-        mysql.insert_one(sql, arg)
-        return
+        code = data.iloc[i]['code']
+        market_cap = is_nan(float(data.iloc[i]['market_cap']))
+
+        if market_cap < 100:
+            continue
+
+        circulating_market_cap = is_nan(float(data.iloc[i]['circulating_market_cap']))
+        pe_ratio = is_nan(float(data.iloc[i]['pe_ratio']))
+        pb_ratio = is_nan(float(data.iloc[i]['pb_ratio']))
+        ps_ratio = is_nan(float(data.iloc[i]['ps_ratio']))
+        pcf_ratio = is_nan(float(data.iloc[i]['pcf_ratio']))
+        arg = (code, market_cap, circulating_market_cap, pe_ratio, pb_ratio, ps_ratio, pcf_ratio, 'stock')
+
+        print(arg)
+        args.append(arg)
+
+    mysql.insert_many(sql, args)
 
 
-init_stock()
+def is_nan(x):
+    if math.isnan(x):
+        return 0
+    else:
+        return x
+
+
+# 初始化股票公司信息
+def init_stock_info():
+    stocks_sql = "select code from security"
+    stock_codes = mysql.select_all(stocks_sql, ())
+    print(stock_codes)
+
+    jq.login()
+
+    stock_infos = []
+    for stock_code in stock_codes:
+        code = stock_code['code']
+        company_info = finance.run_query(
+            query(finance.STK_COMPANY_INFO).filter(finance.STK_COMPANY_INFO.code == code).limit(1))
+
+        company_id = int(company_info.iloc[0]['company_id'])
+        full_name = company_info.iloc[0]['full_name']
+        short_name = company_info.iloc[0]['short_name']
+        register_location = company_info.iloc[0]['register_location']
+        office_address = company_info.iloc[0]['office_address']
+        register_capital = is_nan(float(company_info.iloc[0]['register_capital']))
+        main_business = company_info.iloc[0]['main_business']
+        business_scope = company_info.iloc[0]['business_scope']
+        description = company_info.iloc[0]['description']
+        province = company_info.iloc[0]['province']
+        city = company_info.iloc[0]['city']
+        comments = company_info.iloc[0]['comments']
+
+        stock_info = (
+            company_id, full_name, short_name, register_location, office_address, register_capital,
+            main_business, business_scope, description, province, city, comments, code)
+
+        print(stock_info)
+        stock_infos.append(stock_info)
+
+    update_stock_info_sql = "update security set company_id = %s, full_name = %s, short_name = %s, register_location = %s, office_address = %s," \
+                            " register_capital = %s, main_business = %s, business_scope = %s, description = %s, province = %s, city = %s, comments = %s" \
+                            " where code = %s"
+    mysql.update_many(update_stock_info_sql, stock_infos)
+
+
+def init_margincash_or_marginsec():
+    jq.login()
+
+    margincash_stocks = sdk.get_margincash_stocks(date='2020-10-30')
+    print(margincash_stocks)
+
+    update_sql = "update security set margincash =1, marginsec = 1 where code = %s"
+    mysql.update_many(update_sql, margincash_stocks)
+
+
+# "sw_l1": 申万一级行业
+# "sw_l2": 申万二级行业
+# "jq_l1": 聚宽一级行业
+# "jq_l2": 聚宽二级行业
+# "zjw": 证监会行业
+def init_industry():
+    jq.login()
+
+    industry_list = []
+
+    # sw_l1
+    sw_l1_data = sdk.get_industries(name='sw_l1', date='2020-10-30')
+    for index in sw_l1_data.index:
+        name = sw_l1_data.loc[index]['name']
+        industry = (index, name, 'sw_l1')
+        industry_list.append(industry)
+
+    # sw_l2
+    sw_l1_data = sdk.get_industries(name='sw_l1', date='2020-10-30')
+    for index in sw_l1_data.index:
+        name = sw_l1_data.loc[index]['name']
+        industry = (index, name, 'sw_l2')
+        industry_list.append(industry)
+
+    # jq_l1
+    sw_l1_data = sdk.get_industries(name='jq_l1', date='2020-10-30')
+    for index in sw_l1_data.index:
+        name = sw_l1_data.loc[index]['name']
+        industry = (index, name, 'jq_l1')
+        industry_list.append(industry)
+
+    # jq_l2
+    sw_l1_data = sdk.get_industries(name='jq_l2', date='2020-10-30')
+    for index in sw_l1_data.index:
+        name = sw_l1_data.loc[index]['name']
+        industry = (index, name, 'jq_l2')
+        industry_list.append(industry)
+
+    # zjw
+    sw_l1_data = sdk.get_industries(name='zjw', date='2020-10-30')
+    for index in sw_l1_data.index:
+        name = sw_l1_data.loc[index]['name']
+        industry = (index, name, 'zjw')
+        industry_list.append(industry)
+
+    print(industry_list)
+    insert_sql = "insert into industry(code, name, type) values (%s, %s, %s)"
+    mysql.insert_many(insert_sql, industry_list)
+
+
+
+init_industry()
 
 # jq.login()
 

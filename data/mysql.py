@@ -35,6 +35,16 @@ def insert_one(sql, args):
     result = cur.execute(sql, args)
     conn.commit()
     close_conn(conn, cur)
+    print('insert %s success: %s', sql, result)
+    return result
+
+
+def insert_many(sql, args):
+    conn, cur = create_conn()
+    result = cur.executemany(sql, args)
+    conn.commit()
+    close_conn(conn, cur)
+    print('insert %s success: %s', sql, result)
     return result
 
 
@@ -51,6 +61,15 @@ def update_one(sql, args):
     result = cur.execute(sql, args)
     conn.commit()
     close_conn(conn, cur)
+    return result
+
+
+def update_many(sql, args):
+    conn, cur = create_conn()
+    result = cur.executemany(sql, args)
+    conn.commit()
+    close_conn(conn, cur)
+    print('update %s success: %s', sql, result)
     return result
 
 # sql = "insert into stu(id,name,age) VALUE (%s,%s,%s)"   #增加
