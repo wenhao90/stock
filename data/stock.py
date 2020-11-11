@@ -8,10 +8,17 @@ from jqdatasdk import macro
 
 from app import join_quant as jq
 
-import mysql
+from data import mysql_util as my
 import math
 import time
 from datetime import datetime
+
+
+def is_nan(x):
+    if math.isnan(x):
+        return 0
+    else:
+        return x
 
 
 # JQData证券代码标准格式
@@ -46,20 +53,13 @@ def init_stock():
         print(arg)
         args.append(arg)
 
-    mysql.insert_many(sql, args)
-
-
-def is_nan(x):
-    if math.isnan(x):
-        return 0
-    else:
-        return x
+    my.insert_many(sql, args)
 
 
 # 初始化股票公司信息
 def init_stock_info():
     stocks_sql = "select code from security"
-    stock_codes = mysql.select_all(stocks_sql, ())
+    stock_codes = my.select_all(stocks_sql, ())
 
     jq.login()
 
@@ -92,7 +92,7 @@ def init_stock_info():
     update_stock_info_sql = "update security set company_id = %s, full_name = %s, short_name = %s, register_location = %s, office_address = %s," \
                             " register_capital = %s, main_business = %s, business_scope = %s, description = %s, province = %s, city = %s, comments = %s" \
                             " where code = %s"
-    mysql.update_many(update_stock_info_sql, stock_infos)
+    my.update_many(update_stock_info_sql, stock_infos)
 
 
 # 初始化是否融资融券数据
@@ -103,7 +103,7 @@ def init_margincash_or_marginsec():
     print(margincash_stocks)
 
     update_sql = "update security set margincash =1, marginsec = 1 where code = %s"
-    mysql.update_many(update_sql, margincash_stocks)
+    my.update_many(update_sql, margincash_stocks)
 
 
 # "sw_l1": 申万一级行业
@@ -153,13 +153,13 @@ def init_industry():
 
     print(industry_list)
     insert_sql = "insert into industry(code, name, type) values (%s, %s, %s)"
-    mysql.insert_many(insert_sql, industry_list)
+    my.insert_many(insert_sql, industry_list)
 
 
 # 初始化股票所属行业
 def init_stock_industries():
     stocks_sql = "select code from security"
-    stock_codes = mysql.select_all(stocks_sql, ())
+    stock_codes = my.select_all(stocks_sql, ())
 
     jq.login()
     stock_industry_list = []
@@ -201,20 +201,20 @@ def init_stock_industries():
             stock_industry_list.append(stock_industry_jq_l2)
 
     insert_sql = "insert into stock_industry(code, type, industry_code, industry_name) values (%s, %s, %s, %s)"
-    mysql.insert_many(insert_sql, stock_industry_list)
+    my.insert_many(insert_sql, stock_industry_list)
 
 
 # 初始化股票行情
 def init_stock_price():
     stocks_sql = "select code from security"
-    stock_codes = mysql.select_all(stocks_sql, ())
+    stock_codes = my.select_all(stocks_sql, ())
 
     jq.login()
 
     for stock_code in stock_codes:
         code = stock_code['code']
         exist_sql = "select count(1) count from stock_price where code = %s"
-        exist = mysql.select_one(exist_sql, code)
+        exist = my.select_one(exist_sql, code)
 
         if exist['count'] > 0:
             print('%s had init', code)
@@ -242,13 +242,13 @@ def init_stock_price():
             stock_price_list.append(stock_price)
 
         insert_sql = "insert into stock_price(code, date, open, close, low, high, volume, money) values (%s, %s, %s, %s, %s, %s, %s, %s)"
-        mysql.insert_many(insert_sql, stock_price_list)
+        my.insert_many(insert_sql, stock_price_list)
 
         update_highest = "update security set highest = (select close from stock_price where code = %s order by close desc limit 1) where code = %s"
-        mysql.update_one(update_highest, (code, code))
+        my.update_one(update_highest, (code, code))
 
         update_lowest = "update security set lowest = (select close from stock_price where code = %s order by close asc limit 1) where code = %s"
-        mysql.update_one(update_lowest, (code, code))
+        my.update_one(update_lowest, (code, code))
 
 
 # 初始化概念列表
@@ -266,13 +266,13 @@ def init_concept():
         concept_list.append(concept)
 
     insert_sql = "insert into concept(code, name) values (%s, %s)"
-    mysql.insert_many(insert_sql, concept_list)
+    my.insert_many(insert_sql, concept_list)
 
 
 # 初始化股票概念
 def ini_stock_concept():
     stocks_sql = "select code from security"
-    stock_codes = mysql.select_all(stocks_sql, ())
+    stock_codes = my.select_all(stocks_sql, ())
 
     jq.login()
 
@@ -289,13 +289,13 @@ def ini_stock_concept():
             stock_concept_list.append(concept_data)
 
         insert_sql = "insert into stock_concept(code, concept_code, concept_name, status) values (%s, %s, %s, %s)"
-        mysql.insert_many(insert_sql, stock_concept_list)
+        my.insert_many(insert_sql, stock_concept_list)
 
 
 # 初始化行业指数数据
 def init_index_price():
     industry_sql = "select code from industry where type = 'sw_l1'"
-    industry_codes = mysql.select_all(industry_sql, ())
+    industry_codes = my.select_all(industry_sql, ())
 
     jq.login()
 
@@ -326,7 +326,7 @@ def init_index_price():
             index_price_list.append(jq1_price)
 
     insert_sql = "insert into index_price(name, code, date, open, high, low, close, volume, money, change_pct) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    mysql.insert_many(insert_sql, index_price_list)
+    my.insert_many(insert_sql, index_price_list)
 
 
 # 初始化沪深市场每日成交概况
@@ -368,16 +368,9 @@ def init_market_total():
 
     insert_sql = "insert into market_toal(date, exchange_code, fin_value, fin_buy_value, sec_volume, sec_value, sec_sell_volume, fin_sec_value) " \
                  " values (%s, %s, %s, %s, %s, %s, %s, %s)"
-    mysql.insert_many(insert_sql, index_total_list)
-
-
-
+    my.insert_many(insert_sql, index_total_list)
 
 # jq.login()
-
-
-# 财务指标数据(一季度)
-# data = sdk.get_fundamentals(sdk.query(sdk.indicator).filter(sdk.valuation.code == '000001.XSHE'), '2020-10-30')
 
 # 合并现金流量表
 # data = finance.run_query(sdk.query(finance.STK_CASHFLOW_STATEMENT).filter(finance.STK_CASHFLOW_STATEMENT.code=='000001.XSHE').limit(1))
