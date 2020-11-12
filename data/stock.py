@@ -204,53 +204,6 @@ def init_stock_industries():
     my.insert_many(insert_sql, stock_industry_list)
 
 
-# 初始化股票行情
-def init_stock_price():
-    stocks_sql = "select code from security"
-    stock_codes = my.select_all(stocks_sql, ())
-
-    jq.login()
-
-    for stock_code in stock_codes:
-        code = stock_code['code']
-        exist_sql = "select count(1) count from stock_price where code = %s"
-        exist = my.select_one(exist_sql, code)
-
-        if exist['count'] > 0:
-            print('%s had init', code)
-            continue
-
-        price_data = sdk.get_price(code, start_date='2020-01-01', end_date='2020-10-30', frequency='daily', fq='pre')
-
-        stock_price_list = []
-        for index in price_data.index:
-            index_price = price_data.loc[index]
-
-            open = float(index_price['open'])
-            if math.isnan(open):
-                continue
-
-            close = float(index_price['close'])
-            low = float(index_price['low'])
-            high = float(index_price['high'])
-            volume = float(index_price['volume'])
-            money = float(index_price['money'])
-
-            date = index.strftime('%Y-%m-%d')
-            stock_price = (code, date, open, close, low, high, volume, money)
-            print(stock_price)
-            stock_price_list.append(stock_price)
-
-        insert_sql = "insert into stock_price(code, date, open, close, low, high, volume, money) values (%s, %s, %s, %s, %s, %s, %s, %s)"
-        my.insert_many(insert_sql, stock_price_list)
-
-        update_highest = "update security set highest = (select close from stock_price where code = %s order by close desc limit 1) where code = %s"
-        my.update_one(update_highest, (code, code))
-
-        update_lowest = "update security set lowest = (select close from stock_price where code = %s order by close asc limit 1) where code = %s"
-        my.update_one(update_lowest, (code, code))
-
-
 # 初始化概念列表
 def init_concept():
     jq.login()
@@ -292,8 +245,55 @@ def ini_stock_concept():
         my.insert_many(insert_sql, stock_concept_list)
 
 
+# 初始化股票行情
+def init_stock_price(start_date, end_date):
+    stocks_sql = "select code from security"
+    stock_codes = my.select_all(stocks_sql, ())
+
+    jq.login()
+
+    for stock_code in stock_codes:
+        code = stock_code['code']
+        # exist_sql = "select count(1) count from stock_price where code = %s"
+        # exist = my.select_one(exist_sql, code)
+        #
+        # if exist['count'] > 0:
+        #     print('%s had init', code)
+        #     continue
+
+        price_data = sdk.get_price(code, start_date=start_date, end_date=end_date, frequency='daily', fq='pre')
+
+        stock_price_list = []
+        for index in price_data.index:
+            index_price = price_data.loc[index]
+
+            open = float(index_price['open'])
+            if math.isnan(open):
+                continue
+
+            close = float(index_price['close'])
+            low = float(index_price['low'])
+            high = float(index_price['high'])
+            volume = float(index_price['volume'])
+            money = float(index_price['money'])
+
+            date = index.strftime('%Y-%m-%d')
+            stock_price = (code, date, open, close, low, high, volume, money)
+            print(stock_price)
+            stock_price_list.append(stock_price)
+
+        insert_sql = "insert into stock_price(code, date, open, close, low, high, volume, money) values (%s, %s, %s, %s, %s, %s, %s, %s)"
+        my.insert_many(insert_sql, stock_price_list)
+
+        update_highest = "update security set highest = (select close from stock_price where code = %s order by close desc limit 1) where code = %s"
+        my.update_one(update_highest, (code, code))
+
+        update_lowest = "update security set lowest = (select close from stock_price where code = %s order by close asc limit 1) where code = %s"
+        my.update_one(update_lowest, (code, code))
+
+
 # 初始化行业指数数据
-def init_index_price():
+def init_index_price(limit=100):
     industry_sql = "select code from industry where type = 'sw_l1'"
     industry_codes = my.select_all(industry_sql, ())
 
@@ -305,7 +305,7 @@ def init_index_price():
 
         jq1_price_data = finance.run_query(
             sdk.query(finance.SW1_DAILY_PRICE).filter(finance.SW1_DAILY_PRICE.code == code).order_by(
-                finance.SW1_DAILY_PRICE.date.desc()).limit(100))
+                finance.SW1_DAILY_PRICE.date.desc()).limit(limit))
 
         for index in jq1_price_data.index:
             index_jq1_price = jq1_price_data.iloc[index]
@@ -340,13 +340,13 @@ def init_exchange_trade():
         finance.STK_EXCHANGE_TRADE_INFO.exchange_code == '322002').limit(1))
 
 
-# 获取融资融券汇总数据
-def init_market_total():
+# 初始化融资融券汇总数据
+def init_market_total(limit=100):
     jq.login()
 
     # 沪深两市就是2条数据
     total_data = finance.run_query(
-        sdk.query(finance.STK_MT_TOTAL).order_by(finance.STK_MT_TOTAL.date.desc()).limit(200))
+        sdk.query(finance.STK_MT_TOTAL).order_by(finance.STK_MT_TOTAL.date.desc()).limit(limit * 2))
 
     index_total_list = []
     for index in total_data.index:
@@ -371,13 +371,6 @@ def init_market_total():
     my.insert_many(insert_sql, index_total_list)
 
 # jq.login()
-
-# 合并现金流量表
-# data = finance.run_query(sdk.query(finance.STK_CASHFLOW_STATEMENT).filter(finance.STK_CASHFLOW_STATEMENT.code=='000001.XSHE').limit(1))
-
-# 合并资产负债表
-# data = finance.run_query(
-#     sdk.query(finance.STK_BALANCE_SHEET).filter(finance.STK_BALANCE_SHEET.code == '000001.XSHE').limit(1))
 
 # 十大流通股东
 # data = finance.run_query(query(finance.STK_SHAREHOLDER_FLOATING_TOP10).filter(finance.STK_SHAREHOLDER_FLOATING_TOP10.code=='000001.XSHE').limit(10))

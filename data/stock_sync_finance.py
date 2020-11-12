@@ -29,41 +29,6 @@ def is_none(x):
         return x
 
 
-# 获取龙虎榜数据
-def get_billboard(start_date=None, end_date=None):
-    jq.login()
-
-    billboard_data = sdk.get_billboard_list(stock_list=None, start_date=start_date, end_date=end_date, count=1)
-
-    billboard_list = []
-    for index in billboard_data.index:
-        index_billboard_data = billboard_data.iloc[index]
-
-        code = index_billboard_data['code']
-        date = index_billboard_data['day'].strftime('%Y-%m-%d')
-        direction = index_billboard_data['direction']
-        abnormal_code = int(index_billboard_data['abnormal_code'])
-        abnormal_name = index_billboard_data['abnormal_name']
-        sales_depart_name = index_billboard_data['sales_depart_name']
-        rank = int(index_billboard_data['rank'])
-        buy_value = is_nan(float(index_billboard_data['buy_value']))
-        buy_rate = is_nan(float(index_billboard_data['buy_rate']))
-        sell_value = is_nan(float(index_billboard_data['sell_value']))
-        sell_rate = is_nan(float(index_billboard_data['sell_rate']))
-        net_value = is_nan(float(index_billboard_data['net_value']))
-        amount = is_nan(float(index_billboard_data['amount']))
-
-        index_billboard = (
-            code, date, direction, abnormal_code, abnormal_name, sales_depart_name, rank, buy_value, buy_rate,
-            sell_value, sell_rate, net_value, amount)
-        print(index_billboard)
-        billboard_list.append(index_billboard)
-
-    insert_sql = "insert into billboard(code, date, direction, abnormal_code, abnormal_name, sales_depart_name, `rank`, buy_value, buy_rate, sell_value, sell_rate, net_value, amount) " \
-                 " values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    my.insert_many(insert_sql, billboard_list)
-
-
 # 财务指标数据(一季度更新)
 def get_fundamentals(date):
     stocks_sql = "select code from security"
@@ -343,4 +308,212 @@ def get_cash_flow():
     my.insert_many(insert_sql, cash_flow_list)
 
 
-# get_cash_flow()
+# 获取合并资产负债表
+def get_balance_sheet():
+    stocks_sql = "select code from security"
+    stock_codes = my.select_all(stocks_sql, ())
+
+    jq.login()
+    balance_sheet_list = []
+
+    for stock_code in stock_codes:
+        code = stock_code['code']
+
+        balance_sheet_data = finance.run_query(
+            sdk.query(finance.STK_BALANCE_SHEET).filter(finance.STK_BALANCE_SHEET.code == code).filter(
+                finance.STK_BALANCE_SHEET.report_type == 0).order_by(
+                finance.STK_BALANCE_SHEET.pub_date.desc()).limit(1))
+
+        if balance_sheet_data.empty:
+            continue
+
+        index_balance_sheet = balance_sheet_data.iloc[0]
+        pub_date = index_balance_sheet['pub_date'].strftime('%Y-%m-%d')
+
+        # exist_sql = "select count(1) count from balance_sheet where code = %s and pub_date = %s"
+        # exist = my.select_one(exist_sql, (code, pub_date))
+        # if exist['count'] > 0:
+        #     print('%s had init', code)
+        #     continue
+
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.max_rows', None)
+        pd.set_option('max_colwidth', 120)
+
+        company_name = index_balance_sheet['company_name']
+        start_date = index_balance_sheet['start_date'].strftime('%Y-%m-%d')
+        end_date = index_balance_sheet['end_date'].strftime('%Y-%m-%d')
+        cash_equivalents = float(is_none(index_balance_sheet['cash_equivalents']))
+        trading_assets = float(is_none(index_balance_sheet['trading_assets']))
+        bill_receivable = float(is_none(index_balance_sheet['bill_receivable']))
+        account_receivable = float(is_none(index_balance_sheet['account_receivable']))
+        advance_payment = float(is_none(index_balance_sheet['advance_payment']))
+        other_receivable = float(is_none(index_balance_sheet['other_receivable']))
+        affiliated_company_receivable = float(is_none(index_balance_sheet['affiliated_company_receivable']))
+        interest_receivable = float(is_none(index_balance_sheet['interest_receivable']))
+        dividend_receivable = float(is_none(index_balance_sheet['dividend_receivable']))
+        inventories = float(is_none(index_balance_sheet['inventories']))
+        expendable_biological_asset = float(is_none(index_balance_sheet['expendable_biological_asset']))
+        non_current_asset_in_one_year = float(is_none(index_balance_sheet['non_current_asset_in_one_year']))
+        total_current_assets = float(is_none(index_balance_sheet['total_current_assets']))
+        hold_for_sale_assets = float(is_none(index_balance_sheet['hold_for_sale_assets']))
+        hold_to_maturity_investments = float(is_none(index_balance_sheet['hold_to_maturity_investments']))
+        longterm_receivable_account = float(is_none(index_balance_sheet['longterm_receivable_account']))
+        longterm_equity_invest = float(is_none(index_balance_sheet['longterm_equity_invest']))
+        investment_property = float(is_none(index_balance_sheet['investment_property']))
+        fixed_assets = float(is_none(index_balance_sheet['fixed_assets']))
+        constru_in_process = float(is_none(index_balance_sheet['constru_in_process']))
+        construction_materials = float(is_none(index_balance_sheet['construction_materials']))
+        fixed_assets_liquidation = float(is_none(index_balance_sheet['fixed_assets_liquidation']))
+        biological_assets = float(is_none(index_balance_sheet['biological_assets']))
+        oil_gas_assets = float(is_none(index_balance_sheet['oil_gas_assets']))
+        intangible_assets = float(is_none(index_balance_sheet['intangible_assets']))
+        development_expenditure = float(is_none(index_balance_sheet['development_expenditure']))
+        good_will = float(is_none(index_balance_sheet['good_will']))
+        long_deferred_expense = float(is_none(index_balance_sheet['long_deferred_expense']))
+        deferred_tax_assets = float(is_none(index_balance_sheet['deferred_tax_assets']))
+        total_non_current_assets = float(is_none(index_balance_sheet['total_non_current_assets']))
+        total_assets = float(is_none(index_balance_sheet['total_assets']))
+        shortterm_loan = float(is_none(index_balance_sheet['shortterm_loan']))
+        trading_liability = float(is_none(index_balance_sheet['trading_liability']))
+        notes_payable = float(is_none(index_balance_sheet['notes_payable']))
+        accounts_payable = float(is_none(index_balance_sheet['accounts_payable']))
+        advance_peceipts = float(is_none(index_balance_sheet['advance_peceipts']))
+        salaries_payable = float(is_none(index_balance_sheet['salaries_payable']))
+        taxs_payable = float(is_none(index_balance_sheet['taxs_payable']))
+        interest_payable = float(is_none(index_balance_sheet['interest_payable']))
+        dividend_payable = float(is_none(index_balance_sheet['dividend_payable']))
+        other_payable = float(is_none(index_balance_sheet['other_payable']))
+        affiliated_company_payable = float(is_none(index_balance_sheet['affiliated_company_payable']))
+        non_current_liability_in_one_year = float(is_none(index_balance_sheet['non_current_liability_in_one_year']))
+        total_current_liability = float(is_none(index_balance_sheet['total_current_liability']))
+        longterm_loan = float(is_none(index_balance_sheet['longterm_loan']))
+        bonds_payable = float(is_none(index_balance_sheet['bonds_payable']))
+        longterm_account_payable = float(is_none(index_balance_sheet['longterm_account_payable']))
+        specific_account_payable = float(is_none(index_balance_sheet['specific_account_payable']))
+        estimate_liability = float(is_none(index_balance_sheet['estimate_liability']))
+        deferred_tax_liability = float(is_none(index_balance_sheet['deferred_tax_liability']))
+        total_non_current_liability = float(is_none(index_balance_sheet['total_non_current_liability']))
+        total_liability = float(is_none(index_balance_sheet['total_liability']))
+        paidin_capital = float(is_none(index_balance_sheet['paidin_capital']))
+        capital_reserve_fund = float(is_none(index_balance_sheet['capital_reserve_fund']))
+        specific_reserves = float(is_none(index_balance_sheet['specific_reserves']))
+        surplus_reserve_fund = float(is_none(index_balance_sheet['surplus_reserve_fund']))
+        treasury_stock = float(is_none(index_balance_sheet['treasury_stock']))
+        retained_profit = float(is_none(index_balance_sheet['retained_profit']))
+        equities_parent_company_owners = float(is_none(index_balance_sheet['equities_parent_company_owners']))
+        minority_interests = float(is_none(index_balance_sheet['minority_interests']))
+        foreign_currency_report_conv_diff = float(is_none(index_balance_sheet['foreign_currency_report_conv_diff']))
+        irregular_item_adjustment = float(is_none(index_balance_sheet['irregular_item_adjustment']))
+        total_owner_equities = float(is_none(index_balance_sheet['total_owner_equities']))
+        total_sheet_owner_equities = float(is_none(index_balance_sheet['total_sheet_owner_equities']))
+        other_comprehensive_income = float(is_none(index_balance_sheet['other_comprehensive_income']))
+        deferred_earning = float(is_none(index_balance_sheet['deferred_earning']))
+        settlement_provi = float(is_none(index_balance_sheet['settlement_provi']))
+        lend_capital = float(is_none(index_balance_sheet['lend_capital']))
+        loan_and_advance_current_assets = float(is_none(index_balance_sheet['loan_and_advance_current_assets']))
+        derivative_financial_asset = float(is_none(index_balance_sheet['derivative_financial_asset']))
+        insurance_receivables = float(is_none(index_balance_sheet['insurance_receivables']))
+        reinsurance_receivables = float(is_none(index_balance_sheet['reinsurance_receivables']))
+        reinsurance_contract_reserves_receivable = float(
+            is_none(index_balance_sheet['reinsurance_contract_reserves_receivable']))
+        bought_sellback_assets = float(is_none(index_balance_sheet['bought_sellback_assets']))
+        hold_sale_asset = float(is_none(index_balance_sheet['hold_sale_asset']))
+        loan_and_advance_noncurrent_assets = float(is_none(index_balance_sheet['loan_and_advance_noncurrent_assets']))
+        borrowing_from_centralbank = float(is_none(index_balance_sheet['borrowing_from_centralbank']))
+        deposit_in_interbank = float(is_none(index_balance_sheet['deposit_in_interbank']))
+        borrowing_capital = float(is_none(index_balance_sheet['borrowing_capital']))
+        derivative_financial_liability = float(is_none(index_balance_sheet['derivative_financial_liability']))
+        sold_buyback_secu_proceeds = float(is_none(index_balance_sheet['sold_buyback_secu_proceeds']))
+        commission_payable = float(is_none(index_balance_sheet['commission_payable']))
+        reinsurance_payables = float(is_none(index_balance_sheet['reinsurance_payables']))
+        insurance_contract_reserves = float(is_none(index_balance_sheet['insurance_contract_reserves']))
+        proxy_secu_proceeds = float(is_none(index_balance_sheet['proxy_secu_proceeds']))
+        receivings_from_vicariously_sold_securities = float(
+            is_none(index_balance_sheet['receivings_from_vicariously_sold_securities']))
+        hold_sale_liability = float(is_none(index_balance_sheet['hold_sale_liability']))
+        estimate_liability_current = float(is_none(index_balance_sheet['estimate_liability_current']))
+        deferred_earning_current = float(is_none(index_balance_sheet['deferred_earning_current']))
+        preferred_shares_noncurrent = float(is_none(index_balance_sheet['preferred_shares_noncurrent']))
+        pepertual_liability_noncurrent = float(is_none(index_balance_sheet['pepertual_liability_noncurrent']))
+        longterm_salaries_payable = float(is_none(index_balance_sheet['longterm_salaries_payable']))
+        other_equity_tools = float(is_none(index_balance_sheet['other_equity_tools']))
+        preferred_shares_equity = float(is_none(index_balance_sheet['preferred_shares_equity']))
+        pepertual_liability_equity = float(is_none(index_balance_sheet['pepertual_liability_equity']))
+
+        balance_sheet = (
+            code, company_name, pub_date, start_date, end_date, cash_equivalents, trading_assets, bill_receivable,
+            account_receivable, advance_payment, other_receivable,
+            affiliated_company_receivable, interest_receivable, dividend_receivable, inventories,
+            expendable_biological_asset, non_current_asset_in_one_year, total_current_assets, hold_for_sale_assets,
+            hold_to_maturity_investments, longterm_receivable_account, longterm_equity_invest, investment_property,
+            fixed_assets, constru_in_process, construction_materials,
+            fixed_assets_liquidation, biological_assets, oil_gas_assets, intangible_assets, development_expenditure,
+            good_will, long_deferred_expense, deferred_tax_assets, total_non_current_assets,
+            total_assets, shortterm_loan, trading_liability, notes_payable, accounts_payable, advance_peceipts,
+            salaries_payable, taxs_payable, interest_payable, dividend_payable,
+            other_payable, affiliated_company_payable, non_current_liability_in_one_year, total_current_liability,
+            longterm_loan, bonds_payable, longterm_account_payable, specific_account_payable,
+            estimate_liability, deferred_tax_liability, total_non_current_liability, total_liability, paidin_capital,
+            capital_reserve_fund, specific_reserves, surplus_reserve_fund, treasury_stock,
+            retained_profit, equities_parent_company_owners, minority_interests, foreign_currency_report_conv_diff,
+            irregular_item_adjustment, total_owner_equities, total_sheet_owner_equities,
+            other_comprehensive_income, deferred_earning, settlement_provi, lend_capital,
+            loan_and_advance_current_assets,
+            derivative_financial_asset, insurance_receivables, reinsurance_receivables,
+            reinsurance_contract_reserves_receivable, bought_sellback_assets, hold_sale_asset,
+            loan_and_advance_noncurrent_assets, borrowing_from_centralbank, deposit_in_interbank, borrowing_capital,
+            derivative_financial_liability, sold_buyback_secu_proceeds, commission_payable, reinsurance_payables,
+            insurance_contract_reserves, proxy_secu_proceeds, receivings_from_vicariously_sold_securities,
+            hold_sale_liability, estimate_liability_current, deferred_earning_current, preferred_shares_noncurrent,
+            pepertual_liability_noncurrent, longterm_salaries_payable, other_equity_tools,
+            preferred_shares_equity, pepertual_liability_equity)
+        print(balance_sheet)
+        balance_sheet_list.append(balance_sheet)
+
+    insert_sql = "insert into balance_sheet(code, company_name, pub_date, start_date, end_date, cash_equivalents, trading_assets, bill_receivable," \
+                 " account_receivable, advance_payment, other_receivable," \
+                 " affiliated_company_receivable, interest_receivable, dividend_receivable, inventories," \
+                 " expendable_biological_asset, non_current_asset_in_one_year, total_current_assets, hold_for_sale_assets," \
+                 " hold_to_maturity_investments, longterm_receivable_account, longterm_equity_invest, investment_property," \
+                 " fixed_assets, constru_in_process, construction_materials," \
+                 " fixed_assets_liquidation, biological_assets, oil_gas_assets, intangible_assets, development_expenditure," \
+                 " good_will, long_deferred_expense, deferred_tax_assets, total_non_current_assets," \
+                 " total_assets, shortterm_loan, trading_liability, notes_payable, accounts_payable, advance_peceipts," \
+                 " salaries_payable, taxs_payable, interest_payable, dividend_payable," \
+                 " other_payable, affiliated_company_payable, non_current_liability_in_one_year, total_current_liability," \
+                 " longterm_loan, bonds_payable, longterm_account_payable, specific_account_payable," \
+                 " estimate_liability, deferred_tax_liability, total_non_current_liability, total_liability, paidin_capital," \
+                 " capital_reserve_fund, specific_reserves, surplus_reserve_fund, treasury_stock," \
+                 " retained_profit, equities_parent_company_owners, minority_interests, foreign_currency_report_conv_diff," \
+                 " irregular_item_adjustment, total_owner_equities, total_sheet_owner_equities," \
+                 " other_comprehensive_income, deferred_earning, settlement_provi, lend_capital," \
+                 " loan_and_advance_current_assets," \
+                 " derivative_financial_asset, insurance_receivables, reinsurance_receivables," \
+                 " reinsurance_contract_reserves_receivable, bought_sellback_assets, hold_sale_asset," \
+                 " loan_and_advance_noncurrent_assets, borrowing_from_centralbank, deposit_in_interbank, borrowing_capital," \
+                 " derivative_financial_liability, sold_buyback_secu_proceeds, commission_payable, reinsurance_payables," \
+                 " insurance_contract_reserves, proxy_secu_proceeds, receivings_from_vicariously_sold_securities," \
+                 " hold_sale_liability, estimate_liability_current, deferred_earning_current, preferred_shares_noncurrent," \
+                 " pepertual_liability_noncurrent, longterm_salaries_payable, other_equity_tools," \
+                 " preferred_shares_equity, pepertual_liability_equity)" \
+                 " values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                 " %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                 " %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                 " %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                 " %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    my.insert_many(insert_sql, balance_sheet_list)
+
+
+# 获取财务相关数据(一季度一次)
+def get_finance_data():
+    # 财务指标
+    get_fundamentals()
+
+    # 现金流量表
+    get_cash_flow()
+
+    # 资产负债表
+    get_balance_sheet()
+
+# get_finance_data()
