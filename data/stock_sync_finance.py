@@ -506,9 +506,9 @@ def get_balance_sheet():
 
 
 # 获取财务相关数据(一季度一次)
-def get_finance_data():
+def get_finance_data(date):
     # 财务指标
-    get_fundamentals()
+    get_fundamentals(date)
 
     # 现金流量表
     get_cash_flow()
@@ -516,4 +516,3 @@ def get_finance_data():
     # 资产负债表
     get_balance_sheet()
 
-# get_finance_data()

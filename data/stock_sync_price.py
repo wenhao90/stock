@@ -84,17 +84,4 @@ def get_sma_20(limit):
     ma.init_sma_20(limit)
 
 
-# 第二天能够获取头一天的数据
-# get_billboard(start_date='2020-11-10', end_date='2020-11-11')
 
-# 每天3点以后
-# get_stock_price(start_date='2020-11-01', end_date='2020-11-11')
-
-# 每天3点,更新价格以后
-get_sma_20(8)
-
-# 每天3点以后
-# get_index_price(8)
-
-# 每天3点以后
-# get_market_total(8)

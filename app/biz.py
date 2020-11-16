@@ -1,42 +1,47 @@
 # 业务操作
+from data import stock_sync_price as price
+from data import stock_strategy as strategy
 
-import clazz.entity as entity
-import data.index as index
-import data.stock as stock
-import data.mongo as mongo
-from app import join_quant as jq
-from clazz.entity import Stock
+######### 获取实时数据 ######################################################################
+# 获取股票价格(每天3点以后)
+# price.get_stock_price(start_date='2020-11-12', end_date='2020-11-16')
 
+# 生成SMA数据(每天3点,更新价格以后)
+# price.get_sma_20(3)
 
-def init():
-    jq.login()
+# 获取行业数据(每天3点以后)
+# price.get_index_price(3)
 
-    count = mongo.get_count("stock")
-    print("表数据条数为：", count)
-
-    if count is 0:
-        stock_init("000902.XSHG")
-
-    print(stock.get_stock_by_code("000001.XSHE"))
+# 获取市场融资融券情况(每天3点以后)
+# price.get_market_total(3)
 
 
-# 中证流通 000902.XSHG
-# 中证 800 000906.XSHG
-def stock_init(index_str):
-    index_list = index.get_stock_by_index(index_str)
+########## 策略更新(跟新万股票信息之后) #####################################################################
+# 更新市场宽度
+# strategy.strategy_market_width(start_date='2020-11-12')
 
-    length = len(index_list)
-    stock_list = [length]
+# 低值: 每天3点，更新完股票价格之后
+# strategy.strategy_low_value('2020-11-16')
 
-    for i in range(length):
-        code = index_list[i]
-        stock_1 = entity.Stock(code, "")
+# 缺口: 每天3点，更新完股票价格之后
+# strategy.strategy_gap()
 
-        stock_list.append(stock_1.to_json())
+# 大量: 每天3点，更新完股票价格之后
+# strategy.strategy_volume_large()
 
-    print(stock_list)
-    mongo.insert_many("stock", stock_list)
-    print("获取条数：", length)
+# 破线、拐头: 每天3点，更新完股票价格之后
+# strategy.strategy_ma()
+
+# 急跌: 每天3点，更新完股票价格之后
+# strategy.strategy_slump()
+
+# 组合查询
+strategy.interest_stock('2020-11-16', '大量')
+
+########## 获取龙虎榜(每天,不实时) #####################################################################
+# 获取龙虎榜(时间不确定，不实时)
+# price.get_billboard(start_date='2020-11-12', end_date='2020-11-16')
 
 
-init()
+########## 获取财务数据(一季度) #####################################################################
+# get_finance_data('2020-10-30')

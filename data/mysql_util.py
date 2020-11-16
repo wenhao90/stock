@@ -1,10 +1,9 @@
-# from utils import POOL
-from dbutils import POOL
+from data import dbutils as db
 import pymysql
 
 
 def create_conn():
-    conn = POOL.connection()
+    conn = db.POOL.connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     return conn, cursor
 

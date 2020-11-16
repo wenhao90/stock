@@ -37,4 +37,4 @@ def init_sma_20(limit):
         my.update_many(update_sql, sma_list)
 
 
-init_sma_20(100)
+
