@@ -4,7 +4,7 @@ from data import stock_strategy as strategy
 
 ######### 获取实时数据 ######################################################################
 # 获取股票价格(每天3点以后)
-# price.get_stock_price(start_date='2020-11-12', end_date='2020-11-16')
+price.get_stock_price(start_date='2019-01-01', end_date='2019-12-31')
 
 # 生成SMA数据(每天3点,更新价格以后)
 # price.get_sma_20(3)
@@ -36,7 +36,7 @@ from data import stock_strategy as strategy
 # strategy.strategy_slump()
 
 # 组合查询
-strategy.interest_stock('2020-11-16', '大量')
+# strategy.interest_stock('2020-11-16', '破线拐头')
 
 ########## 获取龙虎榜(每天,不实时) #####################################################################
 # 获取龙虎榜(时间不确定，不实时)

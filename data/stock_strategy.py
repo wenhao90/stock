@@ -227,4 +227,7 @@ def interest_stock(date, strategy_type):
     data = my.select_all(query_sql, (date, strategy_type))
 
     frame = pd.DataFrame(data)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.max_rows', None)
+    pd.set_option('max_colwidth', 200)
     print(frame)
