@@ -247,7 +247,7 @@ def ini_stock_concept():
 
 # 初始化股票行情
 def init_stock_price(start_date, end_date):
-    stocks_sql = "select code from security"
+    stocks_sql = "select code,highest,lowest from security"
     stock_codes = my.select_all(stocks_sql, ())
 
     jq.login()
@@ -285,11 +285,23 @@ def init_stock_price(start_date, end_date):
         insert_sql = "insert into stock_price(code, date, open, close, low, high, volume, money) values (%s, %s, %s, %s, %s, %s, %s, %s)"
         my.insert_many(insert_sql, stock_price_list)
 
-        update_highest = "update security set highest = (select close from stock_price where code = %s order by close desc limit 1) where code = %s"
-        my.update_one(update_highest, (code, code))
+        now_highest = stock_code['highest']
+        highest_sql = "select close from stock_price where code = %s order by close desc limit 1"
+        highest = my.select_one(highest_sql, code)
+        if highest['close'] > now_highest:
+            update_highest = "update security set highest = %s where code = %s"
+            my.update_one(update_highest, (highest, code))
+            print('修改最高值：现在：%s， 修改为：%s', now_highest, highest['close'])
 
-        update_lowest = "update security set lowest = (select close from stock_price where code = %s order by close asc limit 1) where code = %s"
-        my.update_one(update_lowest, (code, code))
+        now_lowest = stock_code['lowest']
+        lowest_sql = "select close from stock_price where code = %s order by close asc limit 1"
+        lowest = my.select_one(lowest_sql, code)
+        if lowest['close'] < now_lowest:
+            update_lowest = "update security set lowest = %s where code = %s"
+            my.update_one(update_lowest, (code, code))
+            print('修改最低值：现在：%s， 修改为：%s', now_lowest, lowest['close'])
+
+        break
 
 
 # 初始化行业指数数据

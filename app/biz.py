@@ -1,10 +1,14 @@
 # 业务操作
 from data import stock_sync_price as price
 from data import stock_strategy as strategy
+from app import join_quant as jq
+
+# 剩余条数
+# jq.remainder()
 
 ######### 获取实时数据 ######################################################################
 # 获取股票价格(每天3点以后)
-price.get_stock_price(start_date='2019-01-01', end_date='2019-12-31')
+# price.get_stock_price(start_date='2020-11-16', end_date='2020-11-16')
 
 # 生成SMA数据(每天3点,更新价格以后)
 # price.get_sma_20(3)
@@ -21,7 +25,7 @@ price.get_stock_price(start_date='2019-01-01', end_date='2019-12-31')
 # strategy.strategy_market_width(start_date='2020-11-12')
 
 # 低值: 每天3点，更新完股票价格之后
-# strategy.strategy_low_value('2020-11-16')
+strategy.strategy_low_value('2020-11-16')
 
 # 缺口: 每天3点，更新完股票价格之后
 # strategy.strategy_gap()
