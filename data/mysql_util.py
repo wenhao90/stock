@@ -55,6 +55,15 @@ def delete_one(sql, args):
     return result
 
 
+def delete_many(sql, args):
+    conn, cur = create_conn()
+    result = cur.executemany(sql, args)
+    conn.commit()
+    close_conn(conn, cur)
+    print('delete %s success: %s', sql, result)
+    return result
+
+
 def update_one(sql, args):
     conn, cur = create_conn()
     result = cur.execute(sql, args)

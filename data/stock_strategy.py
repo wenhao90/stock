@@ -9,10 +9,10 @@ def strategy_market_width(industry_type='sw_l1', start_date=None):
     width_sql = "select industry.industry_name, industry.industry_code, price.date, count(1) count, " \
                 "count(if(price.close > price.sma_20, 1, null)) success " \
                 "from stock_price price left join stock_industry industry on price.code = industry.code " \
-                "where industry.type = %s and price.date >= %s " \
+                "where industry.type = %s and price.date >= (select price_1.date from stock_price price_1 order by price_1.date desc limit 1) " \
                 "group by industry.industry_name, industry.industry_code, price.date " \
                 "order by price.date desc"
-    width_data = my.select_all(width_sql, (industry_type, start_date))
+    width_data = my.select_all(width_sql, (industry_type))
 
     width_list = []
     for index_width in width_data:
@@ -33,11 +33,11 @@ def strategy_market_width(industry_type='sw_l1', start_date=None):
 
 
 # 处于低值区的股票(range 越大表示越接近)
-def strategy_low_value(date):
+def strategy_low_value():
     price_sql = "select stock.code, stock.short_name,price.date,price.close,stock.highest,stock.lowest " \
                 "from stock_price price left join security stock on price.code = stock.code " \
-                "where price.date = %s"
-    price_data = my.select_all(price_sql, date)
+                "where price.date = (select price_1.date from stock_price price_1 order by price_1.date desc limit 1)"
+    price_data = my.select_all(price_sql, ())
 
     low_value_list = []
     for index_price in price_data:

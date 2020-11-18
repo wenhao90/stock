@@ -55,6 +55,8 @@ def init_stock():
 
     my.insert_many(sql, args)
 
+    del_st()
+
 
 # 初始化股票公司信息
 def init_stock_info():
@@ -290,18 +292,16 @@ def init_stock_price(start_date, end_date):
         highest = my.select_one(highest_sql, code)
         if highest['close'] > now_highest:
             update_highest = "update security set highest = %s where code = %s"
-            my.update_one(update_highest, (highest, code))
-            print('修改最高值：现在：%s， 修改为：%s', now_highest, highest['close'])
+            my.update_one(update_highest, (highest['close'], code))
+            print('%s 修改最高值：现在：%s， 修改为：%s', code, now_highest, highest['close'])
 
         now_lowest = stock_code['lowest']
         lowest_sql = "select close from stock_price where code = %s order by close asc limit 1"
         lowest = my.select_one(lowest_sql, code)
         if lowest['close'] < now_lowest:
             update_lowest = "update security set lowest = %s where code = %s"
-            my.update_one(update_lowest, (code, code))
-            print('修改最低值：现在：%s， 修改为：%s', now_lowest, lowest['close'])
-
-        break
+            my.update_one(update_lowest, (lowest['close'], code))
+            print('%s 修改最低值：现在：%s， 修改为：%s', code, now_lowest, lowest['close'])
 
 
 # 初始化行业指数数据
@@ -381,6 +381,30 @@ def init_market_total(limit=100):
     insert_sql = "insert into market_toal(date, exchange_code, fin_value, fin_buy_value, sec_volume, sec_value, sec_sell_volume, fin_sec_value) " \
                  " values (%s, %s, %s, %s, %s, %s, %s, %s)"
     my.insert_many(insert_sql, index_total_list)
+
+
+# 是否 ST
+def del_st(date):
+    stocks_sql = "select code from security"
+    stock_codes = my.select_all(stocks_sql, ())
+
+    jq.login()
+
+    st_list = []
+    for stock_code in stock_codes:
+        code = stock_code['code']
+
+        st_data = sdk.get_extras('is_st', [code], start_date=date, end_date=date)
+        result = st_data.iloc[0][code]
+
+        if result:
+            print('%s 结果为：%s', code, result)
+            st = code
+            st_list.append(st)
+
+    print(st_list)
+    del_sql = "delete from security where code in (%s)"
+    my.delete_many(del_sql, st_list)
 
 # jq.login()
 
