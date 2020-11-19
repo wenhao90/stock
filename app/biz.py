@@ -8,17 +8,15 @@ from app import join_quant as jq
 
 ######### 获取实时数据 ######################################################################
 # 获取股票价格(每天3点以后)
-# price.get_stock_price(start_date='2014-01-01', end_date='2014-12-31')
+# price.get_stock_price(start_date='2020-11-19', end_date='2020-11-19')
 
 # 生成SMA数据(每天3点,更新价格以后)
-# price.get_sma_20(2)
-
-
+# price.get_sma_20(1)
 
 
 ########## 策略更新(跟新万股票信息之后) #####################################################################
 # 更新市场宽度
-# strategy.strategy_market_width(start_date='2020-11-12')
+# strategy.strategy_market_width()
 
 # 低值: 每天3点，更新完股票价格之后
 # strategy.strategy_low_value()
