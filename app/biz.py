@@ -1,6 +1,7 @@
 # 业务操作
 from data import stock_sync_price as price
 from data import stock_strategy as strategy
+from data import stock_pool as pool
 from app import join_quant as jq
 
 # 剩余条数
@@ -8,7 +9,7 @@ from app import join_quant as jq
 
 ######### 获取实时数据 ######################################################################
 # 获取股票价格(每天3点以后)
-# price.get_stock_price(start_date='2020-11-19', end_date='2020-11-19')
+# price.get_stock_price(start_date='2020-11-24', end_date='2020-11-24')
 
 # 生成SMA数据(每天3点,更新价格以后)
 # price.get_sma_20(1)
@@ -38,13 +39,18 @@ from app import join_quant as jq
 
 ########## 获取不实时信息 #####################################################################
 # 获取龙虎榜(早上获取前一天数据)
-# price.get_billboard(start_date='2020-11-18', end_date='2020-11-18')
+# price.get_billboard(start_date='2020-11-24', end_date='2020-11-24')
 
 # 获取行业数据(早上获取前一天数据)
 # price.get_index_price(1)
 
 # 获取市场融资融券情况(早上获取前一天数据)
 # price.get_market_total(1)
+
+
+########## 股票池更新 #####################################################################
+# pool.stock_add()
+# pool.stock_update()
 
 
 ########## 获取财务数据(一季度) #####################################################################
