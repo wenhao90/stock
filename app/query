@@ -1,0 +1,9 @@
+-- 查询各个类型
+select s.* from strategy s left join stock_price price on s.code = price.code and s.date = price.date
+where s.date = '2020-11-26' and price.money > 100000000 and s.type = '低值'
+
+
+-- 查询有多个类型的股票
+select s.code, max(s.company_name), group_concat(s.type), max(s.price), max(s.highest), max(s.lowest) from strategy s
+left join stock_price price on s.code = price.code and s.date = price.date
+where s.date = '2020-11-26' and price.money > 100000000 GROUP BY s.code HAVING count(s.code) > 1

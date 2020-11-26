@@ -98,12 +98,12 @@ def strategy_gap():
 
 
 def strategy_volume_large(limit=5):
-    stocks_sql = "select code,short_name from security"
-    stock_codes = my.select_all(stocks_sql, ())
+    stocks_sql = "select code,short_name,highest,lowest from security"
+    stocks = my.select_all(stocks_sql, ())
 
     large_list = []
-    for stock_code in stock_codes:
-        code = stock_code['code']
+    for index_stock in stocks:
+        code = index_stock['code']
 
         price_sql = "select date, volume,close from stock_price where code = %s order by date desc limit %s"
         large_data = my.select_all(price_sql, (code, limit + 1))
@@ -117,11 +117,14 @@ def strategy_volume_large(limit=5):
 
         now_volume = float(large_data[0]['volume'])
         if now_volume > avg * 3:
-            short_name = stock_code['short_name']
+            short_name = index_stock['short_name']
             now_date = large_data[0]['date']
             now_close = float(large_data[0]['close'])
 
-            large_value = (code, short_name, now_date, '大量', now_close, 0, 0, 0)
+            highest = float(index_stock['highest'])
+            lowest = float(index_stock['lowest'])
+
+            large_value = (code, short_name, now_date, '大量', now_close, highest, lowest, 0)
             print(large_value)
             large_list.append(large_value)
 
@@ -132,12 +135,12 @@ def strategy_volume_large(limit=5):
 
 # 均线相关策略：破线 + 拐头
 def strategy_ma():
-    stocks_sql = "select code,short_name from security"
-    stock_codes = my.select_all(stocks_sql, ())
+    stocks_sql = "select code,short_name,highest,lowest from security"
+    stocks = my.select_all(stocks_sql, ())
 
     ma_list = []
-    for stock_code in stock_codes:
-        code = stock_code['code']
+    for index_stock in stocks:
+        code = index_stock['code']
 
         price_sql = "select date, sma_20, close from stock_price where code = %s order by date desc limit 2"
         ma_data = my.select_all(price_sql, code)
@@ -164,11 +167,14 @@ def strategy_ma():
         if strategy_type is None:
             continue
 
-        short_name = stock_code['short_name']
+        short_name = index_stock['short_name']
         now_date = ma_data[0]['date']
         now_close = float(ma_data[0]['close'])
 
-        ma_value = (code, short_name, now_date, strategy_type, now_close, 0, 0, 0)
+        highest = float(index_stock['highest'])
+        lowest = float(index_stock['lowest'])
+
+        ma_value = (code, short_name, now_date, strategy_type, now_close, highest, lowest, 0)
         print(ma_value)
         ma_list.append(ma_value)
 
@@ -180,12 +186,12 @@ def strategy_ma():
 
 
 def strategy_slump():
-    stocks_sql = "select code,short_name from security"
-    stock_codes = my.select_all(stocks_sql, ())
+    stocks_sql = "select code,short_name,highest,lowest from security"
+    stocks = my.select_all(stocks_sql, ())
 
     slump_list = []
-    for stock_code in stock_codes:
-        code = stock_code['code']
+    for index_stock in stocks:
+        code = index_stock['code']
 
         price_sql = "select date, close from stock_price where code = %s order by date desc limit 6"
         slump_data = my.select_all(price_sql, code)
@@ -200,15 +206,18 @@ def strategy_slump():
         range_5 = round((pre_5_close - now_close) / pre_5_close, 4)
 
         if range_2 > 0.15:
-            short_name = stock_code['short_name']
+            short_name = index_stock['short_name']
             now_date = slump_data[0]['date']
 
-            slump_value = (code, short_name, now_date, '急跌: 2日', now_close, 0, 0, range_2)
+            highest = float(index_stock['highest'])
+            lowest = float(index_stock['lowest'])
+
+            slump_value = (code, short_name, now_date, '急跌: 2日', now_close, highest, lowest, range_2)
             print(slump_value)
             slump_list.append(slump_value)
 
         if range_5 > 0.3:
-            short_name = stock_code['short_name']
+            short_name = index_stock['short_name']
             now_date = slump_data[0]['date']
 
             slump_value = (code, short_name, now_date, '急跌: 5日', now_close, 0, 0, range_5)
