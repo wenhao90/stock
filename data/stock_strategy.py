@@ -51,7 +51,7 @@ def strategy_low_value():
         if difference != 0:
             low_range = 100 - round((close - lowest) / difference, 4) * 100
 
-        if low_range > 70:
+        if low_range > 85:
             code = index_price['code']
             short_name = index_price['short_name']
             date = index_price['date']
