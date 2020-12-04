@@ -46,11 +46,7 @@ def strategy_low_value():
         lowest = float(index_price['lowest'])
         print("close: %s, highest: %s, lowest: %s", close, highest, lowest)
 
-        difference = highest - lowest
-        low_range = 100
-        if difference != 0:
-            low_range = 100 - round((close - lowest) / difference, 4) * 100
-
+        low_range = _get_range(close, highest, lowest)
         if low_range > 85:
             code = index_price['code']
             short_name = index_price['short_name']
@@ -87,7 +83,9 @@ def strategy_gap():
             short_name = stock_code['short_name']
             now_date = price_data[0]['date']
             now_close = float(price_data[0]['close'])
-            gap_value = (code, short_name, now_date, '缺口', now_close, now_high, now_low, 0)
+
+            now_range = _get_range(now_close, now_high, now_low)
+            gap_value = (code, short_name, now_date, '缺口', now_close, now_high, now_low, now_range)
 
             print(gap_value)
             gap_list.append(gap_value)
@@ -124,7 +122,8 @@ def strategy_volume_large(limit=5):
             highest = float(index_stock['highest'])
             lowest = float(index_stock['lowest'])
 
-            large_value = (code, short_name, now_date, '大量', now_close, highest, lowest, 0)
+            now_range = _get_range(now_close, highest, lowest)
+            large_value = (code, short_name, now_date, '大量', now_close, highest, lowest, now_range)
             print(large_value)
             large_list.append(large_value)
 
@@ -174,7 +173,8 @@ def strategy_ma():
         highest = float(index_stock['highest'])
         lowest = float(index_stock['lowest'])
 
-        ma_value = (code, short_name, now_date, strategy_type, now_close, highest, lowest, 0)
+        now_range = _get_range(now_close, highest, lowest)
+        ma_value = (code, short_name, now_date, strategy_type, now_close, highest, lowest, now_range)
         print(ma_value)
         ma_list.append(ma_value)
 
@@ -202,6 +202,7 @@ def strategy_slump():
         pre_2_close = float(slump_data[2]['close'])
         pre_5_close = float(slump_data[5]['close'])
 
+        # 跌幅
         range_2 = round((pre_2_close - now_close) / pre_2_close, 4)
         range_5 = round((pre_5_close - now_close) / pre_5_close, 4)
 
@@ -212,7 +213,8 @@ def strategy_slump():
             highest = float(index_stock['highest'])
             lowest = float(index_stock['lowest'])
 
-            slump_value = (code, short_name, now_date, '急跌: 2日', now_close, highest, lowest, range_2)
+            now_range_2 = _get_range(now_close, highest, lowest)
+            slump_value = (code, short_name, now_date, '急跌: 2日', now_close, highest, lowest, now_range_2)
             print(slump_value)
             slump_list.append(slump_value)
 
@@ -220,7 +222,8 @@ def strategy_slump():
             short_name = index_stock['short_name']
             now_date = slump_data[0]['date']
 
-            slump_value = (code, short_name, now_date, '急跌: 5日', now_close, 0, 0, range_5)
+            now_range_5 = _get_range(now_close, highest, lowest)
+            slump_value = (code, short_name, now_date, '急跌: 5日', now_close, highest, lowest, now_range_5)
             print(slump_value)
             slump_list.append(slump_value)
 
@@ -240,3 +243,11 @@ def interest_stock(date, strategy_type):
     pd.set_option('display.max_rows', None)
     pd.set_option('max_colwidth', 200)
     print(frame)
+
+
+def _get_range(now_price, highest, lowest):
+    difference = highest - lowest
+    if difference == 0:
+        return 100
+    else:
+        return 100 - round((now_price - lowest) / difference, 4) * 100

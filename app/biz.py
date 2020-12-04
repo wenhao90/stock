@@ -9,7 +9,7 @@ from app import join_quant as jq
 
 ######### 获取实时数据 ######################################################################
 # 获取股票价格(每天3点以后)
-# price.get_stock_price(start_date='2020-11-26', end_date='2020-11-26')
+# price.get_stock_price(start_date='2020-12-04', end_date='2020-12-04')
 
 # 生成SMA数据(每天3点,更新价格以后)
 # price.get_sma_20(1)
@@ -49,7 +49,7 @@ from app import join_quant as jq
 
 
 ########## 股票池更新 #####################################################################
-# pool.stock_add('601989.XSHG')
+# pool.stock_add('002697.XSHE')
 # pool.stock_update()
 
 
