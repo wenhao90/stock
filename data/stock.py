@@ -290,7 +290,7 @@ def init_stock_price(start_date, end_date):
         now_highest = stock_code['highest']
         highest_sql = "select close from stock_price where code = %s order by close desc limit 1"
         highest = my.select_one(highest_sql, code)
-        if highest['close'] > now_highest:
+        if now_highest is None or highest['close'] > now_highest:
             update_highest = "update security set highest = %s where code = %s"
             my.update_one(update_highest, (highest['close'], code))
             print('%s 修改最高值：现在：%s， 修改为：%s', code, now_highest, highest['close'])
@@ -298,7 +298,7 @@ def init_stock_price(start_date, end_date):
         now_lowest = stock_code['lowest']
         lowest_sql = "select close from stock_price where code = %s order by close asc limit 1"
         lowest = my.select_one(lowest_sql, code)
-        if lowest['close'] < now_lowest:
+        if now_lowest is None or lowest['close'] < now_lowest:
             update_lowest = "update security set lowest = %s where code = %s"
             my.update_one(update_lowest, (lowest['close'], code))
             print('%s 修改最低值：现在：%s， 修改为：%s', code, now_lowest, lowest['close'])

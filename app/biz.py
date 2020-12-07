@@ -10,7 +10,7 @@ from app import join_quant as jq
 
 ######### 获取实时数据 ######################################################################
 # 获取股票价格(每天3点以后)
-# price.get_stock_price(start_date='2020-12-04', end_date='2020-12-04')
+# price.get_stock_price(start_date='2020-12-07', end_date='2020-12-07')
 
 # 生成SMA数据(每天3点,更新价格以后)
 # price.get_sma_20(1)
@@ -33,7 +33,7 @@ from app import join_quant as jq
 # strategy.strategy_slump()
 
 # 缺口: 每天3点，更新完股票价格之后
-# strategy.strategy_gap()
+strategy.strategy_gap()
 
 # 组合查询
 # strategy.interest_stock('2020-11-16', '破线拐头')
