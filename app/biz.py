@@ -2,6 +2,7 @@
 from data import stock_sync_price as price
 from data import stock_strategy as strategy
 from data import stock_pool as pool
+from data import stock as stock
 from app import join_quant as jq
 
 # 剩余条数
@@ -49,7 +50,7 @@ from app import join_quant as jq
 
 
 ########## 股票池更新 #####################################################################
-# pool.stock_add('002697.XSHE')
+# pool.stock_add('600036.XSHG')
 # pool.stock_update()
 
 
