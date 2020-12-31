@@ -4,8 +4,8 @@ from data import math
 import numpy as np
 
 
-# 初始化 sma_20
-def init_sma_20(limit):
+# 初始化 sma
+def init_sma(limit, ma_num):
     stocks_sql = "select code from security"
     stock_codes = my.select_all(stocks_sql, ())
 
@@ -13,7 +13,7 @@ def init_sma_20(limit):
         code = stock_code['code']
 
         price_query_sql = "select date, close from stock_price where code = %s order by date desc limit %s"
-        price_data = my.select_all(price_query_sql, (code, limit + 20))
+        price_data = my.select_all(price_query_sql, (code, limit + ma_num))
 
         price_list = []
         for price in price_data:

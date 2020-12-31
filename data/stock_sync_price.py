@@ -80,8 +80,5 @@ def get_market_total(limit):
 
 
 # 同步融资融券汇总数据
-def get_sma_20(limit):
-    ma.init_sma_20(limit)
-
-
-
+def get_sma(limit):
+    ma.init_sma(limit, 20)
